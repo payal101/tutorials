@@ -73,7 +73,7 @@ from datetime import datetime
 
 
 transform = transforms.Compose(
-    [transforms.ToTensor(),
+    [v2.ToImage() + v2.ToDtype(torch.float32, scale=True): ToTensor(),
     transforms.Normalize((0.5,), (0.5,))])
 
 # Create datasets for training & validation, download if necessary
@@ -89,9 +89,8 @@ classes = ('T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
         'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle Boot')
 
 # Report split sizes
-print('Training set has {} instances'.format(len(training_set)))
-print('Validation set has {} instances'.format(len(validation_set)))
-
+print(f'Training set has {len(training_set)} instances')
+print(f'Validation set has {len(validation_set)} instances')
 
 ######################################################################
 # As always, let’s visualize the data as a sanity check:
@@ -176,7 +175,7 @@ print(dummy_outputs)
 print(dummy_labels)
 
 loss = loss_fn(dummy_outputs, dummy_labels)
-print('Total loss for this batch: {}'.format(loss.item()))
+print(f'Total loss for this batch: {loss.item()}')
 
 
 #################################################################################
@@ -251,7 +250,7 @@ def train_one_epoch(epoch_index, tb_writer):
         running_loss += loss.item()
         if i % 1000 == 999:
             last_loss = running_loss / 1000 # loss per batch
-            print('  batch {} loss: {}'.format(i + 1, last_loss))
+            print(f'batch {i+1} loss: {last_loss}')
             tb_x = epoch_index * len(training_loader) + i + 1
             tb_writer.add_scalar('Loss/train', last_loss, tb_x)
             running_loss = 0.
@@ -276,7 +275,7 @@ def train_one_epoch(epoch_index, tb_writer):
 
 # Initializing in a separate cell so we can easily add more epochs to the same run
 timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-writer = SummaryWriter('runs/fashion_trainer_{}'.format(timestamp))
+writer = SummaryWriter(f'runs/fashion_trainer_{timestamp}')
 epoch_number = 0
 
 EPOCHS = 5
@@ -284,7 +283,7 @@ EPOCHS = 5
 best_vloss = 1_000_000.
 
 for epoch in range(EPOCHS):
-    print('EPOCH {}:'.format(epoch_number + 1))
+    print(f'EPOCH {epoch_number+1}:')
     
     # Make sure gradient tracking is on, and do a pass over the data
     model.train(True)
@@ -304,8 +303,8 @@ for epoch in range(EPOCHS):
             vloss = loss_fn(voutputs, vlabels)
             running_vloss += vloss
     
-    avg_vloss = running_vloss / (i + 1)
-    print('LOSS train {} valid {}'.format(avg_loss, avg_vloss))
+    avg_vloss = running_vloss.item()/ (i + 1)
+    print(f'LOSS train {avg_loss} valid {avg_vloss}')
     
     # Log the running loss averaged per batch
     # for both training and validation
@@ -317,7 +316,7 @@ for epoch in range(EPOCHS):
     # Track best performance, and save the model's state
     if avg_vloss < best_vloss:
         best_vloss = avg_vloss
-        model_path = 'model_{}_{}'.format(timestamp, epoch_number)
+        model_path = f'model_{timestamp}_{epoch_number}'
         torch.save(model.state_dict(), model_path)
     
     epoch_number += 1
