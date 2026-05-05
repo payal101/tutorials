@@ -72,7 +72,7 @@ from torch.utils.tensorboard import SummaryWriter
 from datetime import datetime
 
 
-transform = transforms.Compose(
+transform = transforms.Normalize(
     [transforms.ToTensor(),
     transforms.Normalize((0.5,), (0.5,))])
 
